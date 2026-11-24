@@ -1,0 +1,46 @@
+name: Verify theta mean bounds
+on:
+  push:
+    branches: [codex/verify-theta-mean]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      RH_BASE: 9282d3a102c4aff0e6026746db2a8990f5d9cddd
+      RH_HEAD: e6e66fc3413b70d1f9ccc41a29f9bb2603725ea0
+      MATHLIB_CACHE_GET_URL: https://cache.mathlib.org/mathlib4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: leanprover-community/riemann-hypothesis
+          ref: 9282d3a102c4aff0e6026746db2a8990f5d9cddd
+          persist-credentials: false
+      - name: Free space on the hosted runner
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache /usr/local/swift
+          df -h .
+      - name: Install Lean through elan
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -o "$RUNNER_TEMP/elan-init.sh"
+          sh "$RUNNER_TEMP/elan-init.sh" -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - name: Restore the upstream Lean build cache
+        run: |
+          test "$(git rev-parse HEAD)" = "$RH_BASE"
+          lake exe mathlib/cache get
+          lake exe cache get
+          df -h .
+      - name: Apply the exact PR commit
+        run: |
+          git fetch --depth=2 https://github.com/sethersons/riemann-hypothesis.git refs/heads/math/theta-mean-conjugate-data
+          test "$(git rev-parse FETCH_HEAD)" = "$RH_HEAD"
+          git show --format= --binary "$RH_HEAD" | git apply --index
+          git diff --cached --check
+          git diff --cached --stat
+      - name: Build Lean and all downstream modules
+        run: lake --log-level=error build
