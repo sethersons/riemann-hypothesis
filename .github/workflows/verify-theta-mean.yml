@@ -11,14 +11,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 180
     env:
-      RH_BASE: 9282d3a102c4aff0e6026746db2a8990f5d9cddd
+      RH_BASE: 67c00ce1025a73f81a39533ac42deb47f15c4a15
       RH_HEAD: e6e66fc3413b70d1f9ccc41a29f9bb2603725ea0
       MATHLIB_CACHE_GET_URL: https://cache.mathlib.org/mathlib4
     steps:
       - uses: actions/checkout@v4
         with:
           repository: leanprover-community/riemann-hypothesis
-          ref: 9282d3a102c4aff0e6026746db2a8990f5d9cddd
+          ref: 67c00ce1025a73f81a39533ac42deb47f15c4a15
           persist-credentials: false
       - name: Free space on the hosted runner
         run: |
