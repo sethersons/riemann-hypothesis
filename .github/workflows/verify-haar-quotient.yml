@@ -12,7 +12,7 @@ jobs:
     timeout-minutes: 180
     env:
       RH_BASE: 9282d3a102c4aff0e6026746db2a8990f5d9cddd
-      RH_HEAD: e1fc153ec1163aecbecdc4246ca0465cc2a81f71
+      RH_HEAD: 1e795e1fb77f6b945103b2630b111dc929253100
       MATHLIB_CACHE_GET_URL: https://cache.mathlib.org/mathlib4
     steps:
       - uses: actions/checkout@v4
@@ -37,10 +37,10 @@ jobs:
           df -h .
       - name: Apply the exact PR commit
         run: |
-          git fetch --depth=2 https://github.com/sethersons/riemann-hypothesis.git refs/heads/math/haar-quotient-transport
+          git fetch --depth=3 https://github.com/sethersons/riemann-hypothesis.git refs/heads/math/haar-quotient-transport
           test "$(git rev-parse FETCH_HEAD)" = "$RH_HEAD"
-          git show --format= --binary "$RH_HEAD" | git apply --index
+          git diff --binary "$RH_BASE" "$RH_HEAD" | git apply --index
           git diff --cached --check
           git diff --cached --stat
       - name: Build Lean and all downstream modules
-        run: lake build
+        run: lake --log-level=error build
